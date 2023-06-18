@@ -5,7 +5,7 @@ import numpy as np
 INPUT_SIZE = 16
 HIDDEN_LAYER_SIZE = 10
 LABEL_SIZE = 1
-GENERATIONS = 5
+GENERATIONS = 1
 POPULATION_SIZE = 100
 MUTATION_RATE = 0.1
 REPLACEMENT_RATE = 0.15
@@ -166,8 +166,9 @@ if __name__ == '__main__':
     genetic_algorithm.run()
 
     # After the genetic algorithm steps, you can use the trained network to make predictions on the test data
-    for data in test_data:
-        input, label = data
-        inputs = np.array(input, dtype=float)
-        output = genetic_algorithm.network.forward(inputs)
-        print("Input:", inputs, "Label:", label, "Prediction:", output, "Error:", np.abs(label - output))
+    # for data in test_data:
+    #     inputs = np.array(data[:-1], dtype=float)
+    #     label = np.array(data[-1], dtype=float)
+    #     inputs = np.array(input, dtype=float)
+    #     output = genetic_algorithm.network.forward(inputs)
+    #     print("Input:", inputs, "Label:", label, "Prediction:", output, "Error Distance:", np.abs(label - output))
