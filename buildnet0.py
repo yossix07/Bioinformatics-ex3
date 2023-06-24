@@ -13,8 +13,9 @@ REPLACEMENT_RATE = 0.4
 REPLACEMENT_SIZE = int(POPULATION_SIZE * REPLACEMENT_RATE)
 EPSILON = 0.0001
 SAME_FITNESS_THRESHOLD = 12
-flag_best_save = 0
+SAVE_TO_FILE = True
 SCALE = 0.1
+BEST_FITNESS = 0.99
 
 class NeuralNetwork:
     def __init__(self, input_size=INPUT_SIZE, hidden_size=HIDDEN_LAYER_SIZE, output_size=LABEL_SIZE):
@@ -26,6 +27,7 @@ class NeuralNetwork:
         self.hidden_bias = np.random.uniform(low=0, high=0.5, size=hidden_size)
         self.output_bias = np.random.uniform(low=0, high=0.5, size=output_size)
 
+    # forward propagation
     def forward(self, inputs):
         hidden_layer = np.dot(inputs, self.hidden_weights) + self.hidden_bias
         hidden_layer_activation = self.sigmoid(hidden_layer)
@@ -37,6 +39,7 @@ class NeuralNetwork:
             y = 0
         return y
 
+    # activation functions
     def sigmoid(self, x):
         return 1 / (1 + np.exp(-x))
 
@@ -56,6 +59,7 @@ class GeneticAlgorithm:
         self.mutation_rate = mutation_rate
         self.network = NeuralNetwork()
 
+    # create a random population of weights
     def generate_population(self):
         population = []
         for _ in range(self.population_size):
@@ -63,6 +67,7 @@ class GeneticAlgorithm:
             population.append(weights)
         return population
 
+    # decode the weights array into the network's weights and biases
     def decode_weights(self, weights):
         self.hidden_bias = weights[-2]
         self.output_bias = weights[-1]
@@ -72,12 +77,14 @@ class GeneticAlgorithm:
         self.network.hidden_weights = hidden_weights
         self.network.output_weights = output_weights
 
+    # crossover two parents to produce two offspring
     def crossover(self, parent1, parent2):
         crossover_point = random.randint(1, len(parent1) - 1)
         child1 = np.concatenate((parent1[:crossover_point], parent2[crossover_point:]))
         child2 = np.concatenate((parent2[:crossover_point], parent1[crossover_point:]))
         return child1, child2
 
+    # mutate the weights array
     def mutate(self, weights):
         weights = np.copy(weights)
         for i in range(len(weights)):
@@ -105,6 +112,7 @@ class GeneticAlgorithm:
 
         return weights
     
+    # select parents using tournament selection
     def select_parents(self, population, fitness_scores, tournament_size=5):
         parents = []
 
@@ -117,7 +125,7 @@ class GeneticAlgorithm:
 
         return parents
 
-
+    # calculate the fitness score of an individual
     def calculate_fitness(self, weights):
         genetic_algorithm.decode_weights(weights)
         correct_predictions=0
@@ -129,7 +137,7 @@ class GeneticAlgorithm:
                 correct_predictions += 1
         return correct_predictions / self.learning_data_size
 
-
+    # replace the worst individuals in the population with the best offspring
     def replace_population(self, population, offspring, fitness_scores):
         worst_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i])[:3*REPLACEMENT_SIZE]
 
@@ -142,6 +150,7 @@ class GeneticAlgorithm:
 
         return population
 
+    # run the genetic algorithm
     def run(self):
         population = self.generate_population()
         fittest_weights = []
@@ -183,7 +192,7 @@ class GeneticAlgorithm:
 
             print("Generation:", generation, "Best Fitness:", best_fitness)
 
-            if best_fitness >= 0.99:
+            if best_fitness >= BEST_FITNESS:
                 return fittest_weights
             if best_fitness == prev_best_fitness:
                 same_fitness_count += 1
@@ -197,7 +206,7 @@ class GeneticAlgorithm:
 
         return fittest_weights
 
-
+# Save the weights to a file
 def save_weights_to_file(file_path, input_size, hidden_size, output_size, hidden_weights, output_weights):
     with open(file_path, 'w') as file:
         # Write input size, hidden size, and output size on the first line
@@ -211,7 +220,7 @@ def save_weights_to_file(file_path, input_size, hidden_size, output_size, hidden
         output_weights_str = ', '.join([str(weight) for weight in output_weights.flatten()])
         file.write('[' + output_weights_str + ']\n')
 
-
+# Parse the learning and test files
 def parse_files():
     learning_file = open(sys.argv[1], 'r')
     learning_data = parse_file(learning_file)
@@ -242,11 +251,13 @@ if __name__ == '__main__':
     learning_data, test_data = parse_files()
     genetic_algorithm = GeneticAlgorithm(test_data, learning_data)
     best_weights = genetic_algorithm.run()
-    #save in file
-    save_weights_to_file("wnet0", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights[:HIDDEN_LAYER_SIZE],
-                                 best_weights[HIDDEN_LAYER_SIZE:])
 
-  #  After the genetic algorithm steps, you can use the trained network to make predictions on the test data
+    #save in file
+    if SAVE_TO_FILE:
+        save_weights_to_file("wnet0", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights[:HIDDEN_LAYER_SIZE],
+                                    best_weights[HIDDEN_LAYER_SIZE:])
+
+    # Test the network
     correct=0
     size = len(test_data)
     for data in test_data:
