@@ -31,10 +31,8 @@ class NeuralNetwork:
         output_layer = np.dot(hidden_layer_activation, self.output_weights)
         output = self.sigmoid(output_layer)
         if output >= 0.5:
-            y = 1
-        else:
-            y = 0
-        return y
+            return 1
+        return 0
 
     # activation functions
     def sigmoid(self, x):
