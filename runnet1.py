@@ -63,30 +63,6 @@ def classify_data(network, data_file, output_file):
             output = network.forward(inputs)
             file.write(str(output) + '\n')
 
-
-# calculate the accuracy rate
-def calculate_accuracy(classification_file, output_file):
-
-    # Read the lines from the classification file
-    with open(classification_file, "r") as classification:
-        classification_lines = classification.readlines()
-
-    # Read the lines from the output file
-    with open(output_file, "r") as output:
-        output_lines = output.readlines()
-
-    # Remove any leading or trailing whitespace from the lines
-    classification_lines = [line.strip() for line in classification_lines]
-    output_lines = [line.strip() for line in output_lines]
-
-    # Calculate the accuracy rate
-    total = len(classification_lines)
-    correct = sum(1 for i in range(total) if classification_lines[i] == output_lines[i])
-    accuracy = (correct / total) * 100
-
-    return accuracy
-
-
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print("Usage: python runnet1.py <Learning File> <Test File>")
@@ -95,5 +71,3 @@ if __name__ == '__main__':
     network = NeuralNetwork(0, 0, 0)
     network.load_weights(sys.argv[1])
     classify_data(network, sys.argv[2], 'output1.txt')
-    accuracy= calculate_accuracy('classification1.txt', 'output1.txt')
-    print(f"Accuracy rate: {accuracy:.2f}%")

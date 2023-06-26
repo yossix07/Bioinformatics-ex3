@@ -237,14 +237,3 @@ if __name__ == '__main__':
     # save in file
     if SAVE_TO_FILE:
         save_weights_to_file("wnet1", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
-
-    # Test the network
-    correct = 0
-    size = len(test_data)
-    for data in test_data:
-        inputs = np.array(data[:-1], dtype=float)
-        label = np.array(data[-1], dtype=float)
-        output = genetic_algorithm.network.forward(inputs)
-        if label == output:
-            correct += 1
-    print('Accuracy: ', correct / size)
