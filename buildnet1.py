@@ -122,8 +122,6 @@ class GeneticAlgorithm:
         best_offspring_indices = sorted(range(len(offspring)), key=lambda i: self.calculate_fitness(offspring[i]),
                                         reverse=True)[:REPLACEMENT_SIZE]
 
-        #population[worst_indices[0]] = population[best_population_indices[0]]
-
         for i in range(REPLACEMENT_SIZE):
             population[worst_indices[i]] = offspring[best_offspring_indices[i]]
 
