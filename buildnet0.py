@@ -15,7 +15,6 @@ EPSILON = 0.0001
 SAME_FITNESS_THRESHOLD = 12
 SAVE_TO_FILE = True
 SCALE = 0.1
-BEST_FITNESS = 0.99
 
 class NeuralNetwork:
     def __init__(self, input_size=INPUT_SIZE, hidden_size=HIDDEN_LAYER_SIZE, output_size=LABEL_SIZE):
@@ -24,17 +23,11 @@ class NeuralNetwork:
         self.output_size = output_size
         self.hidden_weights = np.random.uniform(low=0, high=0.5, size=(input_size, hidden_size))
         self.output_weights = np.random.uniform(low=0, high=0.5, size=(hidden_size, output_size))
-        # self.hidden_bias = np.random.uniform(low=0, high=0.5, size=hidden_size)
-        # self.output_bias = np.random.uniform(low=0, high=0.5, size=output_size)
 
     # forward propagation
     def forward(self, inputs):
-        #hidden_layer = np.dot(inputs, self.hidden_weights) + self.hidden_bias
         hidden_layer = np.dot(inputs, self.hidden_weights)
-
         hidden_layer_activation = self.sigmoid(hidden_layer)
-        #output_layer = np.dot(hidden_layer_activation, self.output_weights) + self.output_bias
-
         output_layer = np.dot(hidden_layer_activation, self.output_weights)
 
         output = self.sigmoid(output_layer)
@@ -74,9 +67,6 @@ class GeneticAlgorithm:
 
     # decode the weights array into the network's weights and biases
     def decode_weights(self, weights):
-        # self.hidden_bias = weights[-2]
-        # self.output_bias = weights[-1]
-        # weights = weights[:-2]
         hidden_weights = np.reshape(weights[:self.network.hidden_weights.size], self.network.hidden_weights.shape)
         output_weights = np.reshape(weights[self.network.hidden_weights.size:], self.network.output_weights.shape)
         self.network.hidden_weights = hidden_weights
@@ -96,32 +86,12 @@ class GeneticAlgorithm:
             if random.random() < self.mutation_rate:
                 mutation = np.random.normal(loc=-0.1, scale=SCALE)
                 weights[i] += mutation
-                weights[i] = np.clip(weights[i], -1, 1)  # Ensure the weights stay within the desired range
-
-        # # Separate the bias values from the weights array
-        # hidden_bias = weights[-2]
-        # output_bias = weights[-1]
-        #
-        # # Mutate the bias values
-        # if random.random() < self.mutation_rate:
-        #     hidden_bias += np.random.normal(loc=-0.1, scale=SCALE)
-        #     hidden_bias = np.clip(hidden_bias, -1, 1)
-        #
-        # if random.random() < self.mutation_rate:
-        #     output_bias += np.random.normal(loc=-0.1, scale=SCALE)
-        #     output_bias = np.clip(output_bias, -1, 1)
-        #
-        # # Update the bias values in the weights array
-        # weights[-2] = hidden_bias
-        # weights[-1] = output_bias
-
+                weights[i] = np.clip(weights[i], -1, 1)
         return weights
     
     # select parents using tournament selection
     def select_parents(self, population, fitness_scores, tournament_size=5):
         parents = []
-
-        # Select 2 parents
         for _ in range(2):
             tournament_candidates = random.sample(range(POPULATION_SIZE), tournament_size)
             tournament_scores = [fitness_scores[i] for i in tournament_candidates]
@@ -197,8 +167,6 @@ class GeneticAlgorithm:
 
             print("Generation:", generation, "Best Fitness:", best_fitness)
 
-            # if best_fitness >= BEST_FITNESS:
-            #     return fittest_weights
             if best_fitness == prev_best_fitness:
                 same_fitness_count += 1
             else:
@@ -206,7 +174,6 @@ class GeneticAlgorithm:
                 self.mutation_rate = MUTATION_RATE
             prev_best_fitness = best_fitness
             if same_fitness_count > SAME_FITNESS_THRESHOLD:
-                # return fittest_weights
                 self.mutation_rate = MAX_MUTATION_RATE
 
         return fittest_weights
@@ -216,6 +183,7 @@ def save_weights_to_file(file_path, input_size, hidden_size, output_size, weight
     hidden_weights = weights[:hidden_size * input_size]
     output_weights = weights[hidden_size * input_size:]
     with open(file_path, 'w') as file:
+
         # Write input size, hidden size, and output size on the first line
         file.write(str(input_size) + ' ' + str(hidden_size) + ' ' + str(output_size) + '\n')
 
@@ -239,6 +207,7 @@ def parse_files():
 
     return learning_data, test_data
 
+# Parse a file and return a list of numpy arrays
 def parse_file(file):
     file_data = []
     for line in file:
@@ -258,7 +227,7 @@ if __name__ == '__main__':
     learning_data, test_data = parse_files()
     genetic_algorithm = GeneticAlgorithm(test_data, learning_data)
     best_weights = genetic_algorithm.run()
-    print(best_weights)
+
     #save in file
     if SAVE_TO_FILE:
         save_weights_to_file("wnet0", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
