@@ -6,8 +6,8 @@ INPUT_SIZE = 16
 HIDDEN_LAYER_SIZE = 10
 LABEL_SIZE = 1
 GENERATIONS = 100
-POPULATION_SIZE = 120
-MUTATION_RATE = 0.3
+POPULATION_SIZE = 160
+MUTATION_RATE = 0.4
 MAX_MUTATION_RATE = 0.9
 REPLACEMENT_RATE = 0.4
 REPLACEMENT_SIZE = int(POPULATION_SIZE * REPLACEMENT_RATE)
@@ -70,7 +70,7 @@ class GeneticAlgorithm:
     def generate_population(self):
         population = []
         for _ in range(self.population_size):
-            weights = np.random.uniform(low=-0.7, high=0.7,
+            weights = np.random.uniform(low=-0.5, high=0.5,
                                         size=self.network.hidden_weights.size + self.network.output_weights.size)
             population.append(weights)
         return population

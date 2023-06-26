@@ -6,8 +6,8 @@ INPUT_SIZE = 16
 HIDDEN_LAYER_SIZE = 10
 LABEL_SIZE = 1
 GENERATIONS = 100
-POPULATION_SIZE = 120
-MUTATION_RATE = 0.3
+POPULATION_SIZE = 160
+MUTATION_RATE = 0.2
 MAX_MUTATION_RATE = 0.9
 REPLACEMENT_RATE = 0.4
 REPLACEMENT_SIZE = int(POPULATION_SIZE * REPLACEMENT_RATE)
@@ -197,8 +197,8 @@ class GeneticAlgorithm:
 
             print("Generation:", generation, "Best Fitness:", best_fitness)
 
-            if best_fitness >= BEST_FITNESS:
-                return fittest_weights
+            # if best_fitness >= BEST_FITNESS:
+            #     return fittest_weights
             if best_fitness == prev_best_fitness:
                 same_fitness_count += 1
             else:
