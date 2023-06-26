@@ -14,18 +14,20 @@ REPLACEMENT_SIZE = int(POPULATION_SIZE * REPLACEMENT_RATE)
 EPSILON = 0.0001
 SAME_FITNESS_THRESHOLD = 12
 SAVE_TO_FILE = True
-SCALE = 0.1
+SCALE = 0.3
 BEST_FITNESS = 0.99
+
 
 class NeuralNetwork:
     def __init__(self, input_size=INPUT_SIZE, hidden_size=HIDDEN_LAYER_SIZE, output_size=LABEL_SIZE):
         self.input_size = input_size
         self.hidden_size = hidden_size
         self.output_size = output_size
-        self.hidden_weights = np.random.uniform(low=0, high=0.5, size=(input_size, hidden_size))
-        self.output_weights = np.random.uniform(low=0, high=0.5, size=(hidden_size, output_size))
-        # self.hidden_bias = np.random.uniform(low=0, high=0.5, size=hidden_size)
-        # self.output_bias = np.random.uniform(low=0, high=0.5, size=output_size)
+        self.hidden_weights = np.random.uniform(low=-1, high=1, size=(input_size, hidden_size))
+        self.output_weights = np.random.uniform(low=-1, high=1, size=(hidden_size, output_size))
+        #
+        # self.hidden_bias = np.random.uniform(low=-1, high=1, size=output_size)
+        # self.output_bias = np.random.uniform(low=-1, high=1, size=output_size)
 
     # forward propagation
     def forward(self, inputs):
@@ -38,7 +40,7 @@ class NeuralNetwork:
         output_layer = np.dot(hidden_layer_activation, self.output_weights)
 
         output = self.sigmoid(output_layer)
-        if output > 0.5:
+        if output >= 0.5:
             y = 1
         else:
             y = 0
@@ -68,7 +70,8 @@ class GeneticAlgorithm:
     def generate_population(self):
         population = []
         for _ in range(self.population_size):
-            weights = np.random.uniform(low=-1, high=1, size=self.network.hidden_weights.size + self.network.output_weights.size)
+            weights = np.random.uniform(low=-0.7, high=0.7,
+                                        size=self.network.hidden_weights.size + self.network.output_weights.size)
             population.append(weights)
         return population
 
@@ -98,7 +101,7 @@ class GeneticAlgorithm:
                 weights[i] += mutation
                 weights[i] = np.clip(weights[i], -1, 1)  # Ensure the weights stay within the desired range
 
-        # # Separate the bias values from the weights array
+        # Separate the bias values from the weights array
         # hidden_bias = weights[-2]
         # output_bias = weights[-1]
         #
@@ -116,7 +119,7 @@ class GeneticAlgorithm:
         # weights[-1] = output_bias
 
         return weights
-    
+
     # select parents using tournament selection
     def select_parents(self, population, fitness_scores, tournament_size=5):
         parents = []
@@ -132,8 +135,8 @@ class GeneticAlgorithm:
 
     # calculate the fitness score of an individual
     def calculate_fitness(self, weights):
-        genetic_algorithm.decode_weights(weights)
-        correct_predictions=0
+        self.decode_weights(weights)
+        correct_predictions = 0
         for data in self.learning_data:
             inputs = np.array(data[:-1], dtype=float)
             expected_output = np.array(data[-1], dtype=float)
@@ -144,11 +147,17 @@ class GeneticAlgorithm:
 
     # replace the worst individuals in the population with the best offspring
     def replace_population(self, population, offspring, fitness_scores):
-        worst_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i])[:3*REPLACEMENT_SIZE]
+        worst_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i])[:3 * REPLACEMENT_SIZE]
+        # Find indices of individuals with best fitness scores from the existing population
+
+        # best_population_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i], reverse=True)[
+        #                           :REPLACEMENT_SIZE]
 
         # Find indices of individuals with best fitness scores from the offspring
         best_offspring_indices = sorted(range(len(offspring)), key=lambda i: self.calculate_fitness(offspring[i]),
                                         reverse=True)[:REPLACEMENT_SIZE]
+
+        #population[worst_indices[0]] = population[best_population_indices[0]]
 
         for i in range(REPLACEMENT_SIZE):
             population[worst_indices[i]] = offspring[best_offspring_indices[i]]
@@ -172,7 +181,7 @@ class GeneticAlgorithm:
                 fitness_scores.append(fitness)
 
             # Crossover - Perform crossover to create new offspring
-            for _ in range(POPULATION_SIZE//2):
+            for _ in range(POPULATION_SIZE // 2):
                 parent1, parent2 = self.select_parents(population, fitness_scores)
                 child1, child2 = self.crossover(parent1, parent2)
                 offspring.append(self.mutate(child1))
@@ -186,7 +195,7 @@ class GeneticAlgorithm:
                 fitness = self.calculate_fitness(weights)
                 fitness_scores.append(fitness)
                 mutated_population.append(self.mutate(weights))
-            
+
             population = self.replace_population(population, mutated_population, fitness_scores)
 
             # Update the weights with the fittest weights from the population
@@ -211,6 +220,7 @@ class GeneticAlgorithm:
 
         return fittest_weights
 
+
 # Save the weights to a file
 def save_weights_to_file(file_path, input_size, hidden_size, output_size, weights):
     hidden_weights = weights[:hidden_size * input_size]
@@ -227,6 +237,7 @@ def save_weights_to_file(file_path, input_size, hidden_size, output_size, weight
         output_weights_str = ', '.join([str(weight) for weight in output_weights.flatten()])
         file.write('[' + output_weights_str + ']\n')
 
+
 # Parse the learning and test files
 def parse_files():
     learning_file = open(sys.argv[1], 'r')
@@ -239,6 +250,7 @@ def parse_files():
 
     return learning_data, test_data
 
+
 def parse_file(file):
     file_data = []
     for line in file:
@@ -250,6 +262,7 @@ def parse_file(file):
         file_data.append(np_line)
     return file_data
 
+
 if __name__ == '__main__':
     if len(sys.argv) != 3:
         print("Usage: python buildnet.py <Learning File> <Test File>")
@@ -259,12 +272,12 @@ if __name__ == '__main__':
     genetic_algorithm = GeneticAlgorithm(test_data, learning_data)
     best_weights = genetic_algorithm.run()
     print(best_weights)
-    #save in file
+    # save in file
     if SAVE_TO_FILE:
-        save_weights_to_file("wnet0", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
+        save_weights_to_file("wnet1", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
 
     # Test the network
-    correct=0
+    correct = 0
     size = len(test_data)
     for data in test_data:
         inputs = np.array(data[:-1], dtype=float)
