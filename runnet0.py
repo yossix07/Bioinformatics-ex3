@@ -59,7 +59,10 @@ def classify_data(network, data_file, output_file):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print("Usage: python runnet0.py <Learning File> <Test File>")
+        print("Usage:")
+        print("python runnet0.py <weights_file> <data_file>")
+        print("Or: ")
+        print("runnet0.exe <weights_file> <data_file>")
         sys.exit(1)
 
     network = NeuralNetwork(0, 0, 0)

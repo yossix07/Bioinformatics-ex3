@@ -219,7 +219,10 @@ def parse_file(file):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print("Usage: python buildnet.py <Learning File> <Test File>")
+        print("Usage:")
+        print("python3 buildnet0.py <learning_file> <test_file>")
+        print("Or: ")
+        print("buildnet0.exe <learning_file> <test_file>")
         sys.exit(1)
 
     learning_data, test_data = parse_files()
