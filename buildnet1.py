@@ -15,8 +15,6 @@ EPSILON = 0.0001
 SAME_FITNESS_THRESHOLD = 12
 SAVE_TO_FILE = True
 SCALE = 0.3
-BEST_FITNESS = 0.99
-
 
 class NeuralNetwork:
     def __init__(self, input_size=INPUT_SIZE, hidden_size=HIDDEN_LAYER_SIZE, output_size=LABEL_SIZE):
@@ -25,26 +23,16 @@ class NeuralNetwork:
         self.output_size = output_size
         self.hidden_weights = np.random.uniform(low=-1, high=1, size=(input_size, hidden_size))
         self.output_weights = np.random.uniform(low=-1, high=1, size=(hidden_size, output_size))
-        #
-        # self.hidden_bias = np.random.uniform(low=-1, high=1, size=output_size)
-        # self.output_bias = np.random.uniform(low=-1, high=1, size=output_size)
 
     # forward propagation
     def forward(self, inputs):
-        #hidden_layer = np.dot(inputs, self.hidden_weights) + self.hidden_bias
         hidden_layer = np.dot(inputs, self.hidden_weights)
-
         hidden_layer_activation = self.sigmoid(hidden_layer)
-        #output_layer = np.dot(hidden_layer_activation, self.output_weights) + self.output_bias
-
         output_layer = np.dot(hidden_layer_activation, self.output_weights)
-
         output = self.sigmoid(output_layer)
         if output >= 0.5:
-            y = 1
-        else:
-            y = 0
-        return y
+            return 1
+        return 0
 
     # activation functions
     def sigmoid(self, x):
@@ -77,9 +65,6 @@ class GeneticAlgorithm:
 
     # decode the weights array into the network's weights and biases
     def decode_weights(self, weights):
-        # self.hidden_bias = weights[-2]
-        # self.output_bias = weights[-1]
-        # weights = weights[:-2]
         hidden_weights = np.reshape(weights[:self.network.hidden_weights.size], self.network.hidden_weights.shape)
         output_weights = np.reshape(weights[self.network.hidden_weights.size:], self.network.output_weights.shape)
         self.network.hidden_weights = hidden_weights
@@ -99,25 +84,7 @@ class GeneticAlgorithm:
             if random.random() < self.mutation_rate:
                 mutation = np.random.normal(loc=-0.1, scale=SCALE)
                 weights[i] += mutation
-                weights[i] = np.clip(weights[i], -1, 1)  # Ensure the weights stay within the desired range
-
-        # Separate the bias values from the weights array
-        # hidden_bias = weights[-2]
-        # output_bias = weights[-1]
-        #
-        # # Mutate the bias values
-        # if random.random() < self.mutation_rate:
-        #     hidden_bias += np.random.normal(loc=-0.1, scale=SCALE)
-        #     hidden_bias = np.clip(hidden_bias, -1, 1)
-        #
-        # if random.random() < self.mutation_rate:
-        #     output_bias += np.random.normal(loc=-0.1, scale=SCALE)
-        #     output_bias = np.clip(output_bias, -1, 1)
-        #
-        # # Update the bias values in the weights array
-        # weights[-2] = hidden_bias
-        # weights[-1] = output_bias
-
+                weights[i] = np.clip(weights[i], -1, 1)
         return weights
 
     # select parents using tournament selection
@@ -148,16 +115,10 @@ class GeneticAlgorithm:
     # replace the worst individuals in the population with the best offspring
     def replace_population(self, population, offspring, fitness_scores):
         worst_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i])[:3 * REPLACEMENT_SIZE]
-        # Find indices of individuals with best fitness scores from the existing population
-
-        # best_population_indices = sorted(range(len(fitness_scores)), key=lambda i: fitness_scores[i], reverse=True)[
-        #                           :REPLACEMENT_SIZE]
 
         # Find indices of individuals with best fitness scores from the offspring
         best_offspring_indices = sorted(range(len(offspring)), key=lambda i: self.calculate_fitness(offspring[i]),
                                         reverse=True)[:REPLACEMENT_SIZE]
-
-        #population[worst_indices[0]] = population[best_population_indices[0]]
 
         for i in range(REPLACEMENT_SIZE):
             population[worst_indices[i]] = offspring[best_offspring_indices[i]]
@@ -206,8 +167,6 @@ class GeneticAlgorithm:
 
             print("Generation:", generation, "Best Fitness:", best_fitness)
 
-            if best_fitness >= BEST_FITNESS:
-                return fittest_weights
             if best_fitness == prev_best_fitness:
                 same_fitness_count += 1
             else:
@@ -215,7 +174,6 @@ class GeneticAlgorithm:
                 self.mutation_rate = MUTATION_RATE
             prev_best_fitness = best_fitness
             if same_fitness_count > SAME_FITNESS_THRESHOLD:
-                # return fittest_weights
                 self.mutation_rate = MAX_MUTATION_RATE
 
         return fittest_weights
@@ -251,6 +209,7 @@ def parse_files():
     return learning_data, test_data
 
 
+# Parse a file and return a list of numpy arrays
 def parse_file(file):
     file_data = []
     for line in file:
@@ -265,24 +224,15 @@ def parse_file(file):
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
-        print("Usage: python buildnet.py <Learning File> <Test File>")
+        print("Usage:")
+        print("python3 buildnet1.py <learning_file> <test_file>")
+        print("Or: ")
+        print("buildnet1.exe <learning_file> <test_file>")
         sys.exit(1)
 
     learning_data, test_data = parse_files()
     genetic_algorithm = GeneticAlgorithm(test_data, learning_data)
     best_weights = genetic_algorithm.run()
-    print(best_weights)
     # save in file
     if SAVE_TO_FILE:
-        save_weights_to_file("wnet1", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
-
-    # Test the network
-    correct = 0
-    size = len(test_data)
-    for data in test_data:
-        inputs = np.array(data[:-1], dtype=float)
-        label = np.array(data[-1], dtype=float)
-        output = genetic_algorithm.network.forward(inputs)
-        if label == output:
-            correct += 1
-    print('Accuracy: ', correct / size)
+        save_weights_to_file("wnet1.txt", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
