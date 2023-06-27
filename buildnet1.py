@@ -232,4 +232,4 @@ if __name__ == '__main__':
     best_weights = genetic_algorithm.run()
     # save in file
     if SAVE_TO_FILE:
-        save_weights_to_file("wnet1", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
+        save_weights_to_file("wnet1.txt", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)

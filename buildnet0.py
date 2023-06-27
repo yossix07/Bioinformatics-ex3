@@ -228,4 +228,4 @@ if __name__ == '__main__':
 
     #save in file
     if SAVE_TO_FILE:
-        save_weights_to_file("wnet0", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
+        save_weights_to_file("wnet0.txt", INPUT_SIZE, HIDDEN_LAYER_SIZE, LABEL_SIZE, best_weights)
